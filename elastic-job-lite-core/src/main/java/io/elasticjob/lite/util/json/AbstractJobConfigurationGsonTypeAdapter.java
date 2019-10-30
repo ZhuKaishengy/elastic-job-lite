@@ -26,10 +26,12 @@ import io.elasticjob.lite.api.JobType;
 import io.elasticjob.lite.config.JobCoreConfiguration;
 import io.elasticjob.lite.config.JobRootConfiguration;
 import io.elasticjob.lite.config.JobTypeConfiguration;
+import io.elasticjob.lite.config.ScheduleTypeEnum;
 import io.elasticjob.lite.config.dataflow.DataflowJobConfiguration;
 import io.elasticjob.lite.config.script.ScriptJobConfiguration;
 import io.elasticjob.lite.config.simple.SimpleJobConfiguration;
 import io.elasticjob.lite.executor.handler.JobProperties;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -42,6 +44,7 @@ import java.util.Map;
  *
  * @author zhangliang
  * @author caohao
+ * @author zhukaishengy
  */
 public abstract class AbstractJobConfigurationGsonTypeAdapter<T extends JobRootConfiguration> extends TypeAdapter<T> {
     
@@ -60,6 +63,12 @@ public abstract class AbstractJobConfigurationGsonTypeAdapter<T extends JobRootC
         String jobClass = "";
         boolean streamingProcess = false;
         String scriptCommandLine = "";
+
+        String scheduleType = "";
+        Integer delay = null;
+        Integer period = null;
+        Integer times = null;
+
         Map<String, Object> customizedValueMap = new HashMap<>(32, 1);
         in.beginObject();
         while (in.hasNext()) {
@@ -104,6 +113,18 @@ public abstract class AbstractJobConfigurationGsonTypeAdapter<T extends JobRootC
                 case "scriptCommandLine":
                     scriptCommandLine = in.nextString();
                     break;
+                case "scheduleType":
+                    scheduleType = in.nextString();
+                    break;
+                case "delay":
+                    delay = in.nextInt();
+                    break;
+                case "period":
+                    period = in.nextInt();
+                    break;
+                case "times":
+                    times = in.nextInt();
+                    break;
                 default:
                     addToCustomizedValueMap(jsonName, in, customizedValueMap);
                     break;
@@ -111,7 +132,7 @@ public abstract class AbstractJobConfigurationGsonTypeAdapter<T extends JobRootC
         }
         in.endObject();
         JobCoreConfiguration coreConfig = getJobCoreConfiguration(jobName, cron, shardingTotalCount, shardingItemParameters,
-                jobParameter, failover, misfire, description, jobProperties);
+                jobParameter, failover, misfire, description, jobProperties, scheduleType, delay, period, times);
         JobTypeConfiguration typeConfig = getJobTypeConfiguration(coreConfig, jobType, jobClass, streamingProcess, scriptCommandLine);
         return getJobRootConfiguration(typeConfig, customizedValueMap);
     }
@@ -140,12 +161,23 @@ public abstract class AbstractJobConfigurationGsonTypeAdapter<T extends JobRootC
     private JobCoreConfiguration getJobCoreConfiguration(final String jobName, final String cron, final int shardingTotalCount,
                                                          final String shardingItemParameters, final String jobParameter, final boolean failover,
                                                          final boolean misfire, final String description,
-                                                         final JobProperties jobProperties) {
-        return JobCoreConfiguration.newBuilder(jobName, cron, shardingTotalCount)
-                .shardingItemParameters(shardingItemParameters).jobParameter(jobParameter).failover(failover).misfire(misfire).description(description)
-                .jobProperties(JobProperties.JobPropertiesEnum.JOB_EXCEPTION_HANDLER.getKey(), jobProperties.get(JobProperties.JobPropertiesEnum.JOB_EXCEPTION_HANDLER))
-                .jobProperties(JobProperties.JobPropertiesEnum.EXECUTOR_SERVICE_HANDLER.getKey(), jobProperties.get(JobProperties.JobPropertiesEnum.EXECUTOR_SERVICE_HANDLER))
-                .build();
+                                                         final JobProperties jobProperties,
+                                                         final String scheduleType, final Integer delay, final Integer period, final Integer times) {
+
+        if (StringUtils.equals(scheduleType, ScheduleTypeEnum.CRON.getValue())) {
+            return JobCoreConfiguration.newBuilder(jobName, cron, shardingTotalCount)
+                    .shardingItemParameters(shardingItemParameters).jobParameter(jobParameter).failover(failover).misfire(misfire).description(description)
+                    .jobProperties(JobProperties.JobPropertiesEnum.JOB_EXCEPTION_HANDLER.getKey(), jobProperties.get(JobProperties.JobPropertiesEnum.JOB_EXCEPTION_HANDLER))
+                    .jobProperties(JobProperties.JobPropertiesEnum.EXECUTOR_SERVICE_HANDLER.getKey(), jobProperties.get(JobProperties.JobPropertiesEnum.EXECUTOR_SERVICE_HANDLER))
+                    .build();
+        } else {
+            // assert StringUtils.equals(scheduleType, ScheduleTypeEnum.SIMPLE.getValue())
+            return JobCoreConfiguration.newBuilder(jobName, shardingTotalCount, delay, period, times)
+                    .shardingItemParameters(shardingItemParameters).jobParameter(jobParameter).failover(failover).misfire(misfire).description(description)
+                    .jobProperties(JobProperties.JobPropertiesEnum.JOB_EXCEPTION_HANDLER.getKey(), jobProperties.get(JobProperties.JobPropertiesEnum.JOB_EXCEPTION_HANDLER))
+                    .jobProperties(JobProperties.JobPropertiesEnum.EXECUTOR_SERVICE_HANDLER.getKey(), jobProperties.get(JobProperties.JobPropertiesEnum.EXECUTOR_SERVICE_HANDLER))
+                    .build();
+        }
     }
     
     private JobTypeConfiguration getJobTypeConfiguration(
@@ -188,6 +220,11 @@ public abstract class AbstractJobConfigurationGsonTypeAdapter<T extends JobRootC
             ScriptJobConfiguration scriptJobConfig = (ScriptJobConfiguration) value.getTypeConfig();
             out.name("scriptCommandLine").value(scriptJobConfig.getScriptCommandLine());
         }
+
+        out.name("scheduleType").value(value.getTypeConfig().getCoreConfig().getScheduleType());
+        out.name("delay").value(value.getTypeConfig().getCoreConfig().getDelay());
+        out.name("period").value(value.getTypeConfig().getCoreConfig().getPeriod());
+        out.name("times").value(value.getTypeConfig().getCoreConfig().getTimes());
         writeCustomized(out, value);
         out.endObject();
     }

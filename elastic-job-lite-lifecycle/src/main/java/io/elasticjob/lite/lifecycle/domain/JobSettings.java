@@ -29,6 +29,7 @@ import java.util.Map;
  * 作业设置对象.
  * 
  * @author zhangliang
+ * @author zhukaishengy
  */
 @Getter
 @Setter
@@ -71,4 +72,14 @@ public final class JobSettings implements Serializable {
     private String scriptCommandLine;
     
     private int reconcileIntervalMinutes;
+
+    /**
+     * 将监听器保存在zk中，否则动态创建任务时无法加上监听
+     */
+    private String listenerClass;
+
+    /**
+     * 将分布式监听器保存在zk中，否则动态创建任务时无法加上监听
+     */
+    private String distributedListenerClass;
 }

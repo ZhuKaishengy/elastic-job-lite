@@ -27,6 +27,7 @@ import lombok.RequiredArgsConstructor;
  * 
  * @author caohao
  * @author zhangliang
+ * @author zhukaishengy
  */
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -47,7 +48,17 @@ public final class LiteJobConfiguration implements JobRootConfiguration {
     private final boolean disabled;
     
     private final boolean overwrite;
-    
+
+    /**
+     * 将监听器保存在任务配置中，否则动态创建任务时无法加上监听
+     */
+    private final String listenerClass;
+
+    /**
+     * 将监听器保存在任务配置中，否则动态创建任务时无法加上监听
+     */
+    private final String distributedListenerClass;
+
     /**
      * 获取作业名称.
      * 
@@ -94,7 +105,11 @@ public final class LiteJobConfiguration implements JobRootConfiguration {
         private boolean overwrite;
         
         private int reconcileIntervalMinutes = 10;
-    
+
+        private String listenerClass;
+
+        private String distributedListenerClass;
+
         /**
          * 设置监控作业执行时状态.
          *
@@ -208,12 +223,37 @@ public final class LiteJobConfiguration implements JobRootConfiguration {
         }
         
         /**
+         * 设置作业监听器
+         *
+         * @param listenerClass 监听器
+         *
+         * @return 作业配置构建器
+         */
+        public Builder listenerClass(final String listenerClass) {
+            this.listenerClass = listenerClass;
+            return this;
+        }
+
+        /**
+         * 设置分布式作业监听器
+         *
+         * @param distributedListenerClass 监听器
+         *
+         * @return 分布式作业监听器
+         */
+        public Builder distributedListenerClass(final String distributedListenerClass) {
+            this.distributedListenerClass = distributedListenerClass;
+            return this;
+        }
+
+        /**
          * 构建作业配置对象.
          * 
          * @return 作业配置对象
          */
         public final LiteJobConfiguration build() {
-            return new LiteJobConfiguration(jobConfig, monitorExecution, maxTimeDiffSeconds, monitorPort, jobShardingStrategyClass, reconcileIntervalMinutes, disabled, overwrite);
+            return new LiteJobConfiguration(jobConfig, monitorExecution, maxTimeDiffSeconds, monitorPort, jobShardingStrategyClass,
+                    reconcileIntervalMinutes, disabled, overwrite, listenerClass, distributedListenerClass);
         }
     }
 }

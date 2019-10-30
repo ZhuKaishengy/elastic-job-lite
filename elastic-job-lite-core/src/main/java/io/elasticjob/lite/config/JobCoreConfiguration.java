@@ -23,7 +23,6 @@ import io.elasticjob.lite.executor.handler.JobProperties;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 /**
  * 作业核心配置.
@@ -51,7 +50,15 @@ public final class JobCoreConfiguration {
     private final String description;
     
     private final JobProperties jobProperties;
-    
+
+    private final String scheduleType;
+
+    private final int delay;
+
+    private final int period;
+
+    private final int times;
+
     /**
      * 创建简单作业配置构建器.
      *
@@ -63,13 +70,26 @@ public final class JobCoreConfiguration {
     public static Builder newBuilder(final String jobName, final String cron, final int shardingTotalCount) {
         return new Builder(jobName, cron, shardingTotalCount);
     }
-    
-    @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+
+    /**
+     * 创建简单作业配置构建器.
+     *
+     * @param jobName 作业名称
+     * @param shardingTotalCount 作业分片总数
+     * @param delay 作业执行延时时间，单位为秒, 如果小于等于0，则立即启动任务
+     * @param period 重试时间间隔,单位为秒,为0代表不重试
+     * @param times 除第一次执行外的重试次数，如果为0则为无限次重试
+     * @return 简单作业配置构建器
+     */
+    public static Builder newBuilder(final String jobName, final int shardingTotalCount, int delay, int period, int times) {
+        return new Builder(jobName, shardingTotalCount, delay, period, times);
+    }
+
     public static class Builder {
         
         private final String jobName;
         
-        private final String cron;
+        private String cron;
         
         private final int shardingTotalCount;
         
@@ -84,7 +104,31 @@ public final class JobCoreConfiguration {
         private String description = "";
         
         private final JobProperties jobProperties = new JobProperties();
-        
+
+        private final String scheduleType;
+
+        private int delay;
+
+        private int period;
+
+        private int times;
+
+        private Builder(String jobName, String cron, int shardingTotalCount) {
+            this.jobName = jobName;
+            this.cron = cron;
+            this.shardingTotalCount = shardingTotalCount;
+            this.scheduleType = ScheduleTypeEnum.CRON.getValue();
+        }
+
+        private Builder(String jobName, int shardingTotalCount, int delay, int period, int times) {
+            this.jobName = jobName;
+            this.shardingTotalCount = shardingTotalCount;
+            this.scheduleType = ScheduleTypeEnum.SIMPLE.getValue();
+            this.delay = delay;
+            this.period = period;
+            this.times = times;
+        }
+
         /**
          * 设置分片序列号和个性化参数对照表.
          *
@@ -186,9 +230,9 @@ public final class JobCoreConfiguration {
          */
         public final JobCoreConfiguration build() {
             Preconditions.checkArgument(!Strings.isNullOrEmpty(jobName), "jobName can not be empty.");
-            Preconditions.checkArgument(!Strings.isNullOrEmpty(cron), "cron can not be empty.");
             Preconditions.checkArgument(shardingTotalCount > 0, "shardingTotalCount should larger than zero.");
-            return new JobCoreConfiguration(jobName, cron, shardingTotalCount, shardingItemParameters, jobParameter, failover, misfire, description, jobProperties);
+            return new JobCoreConfiguration(jobName, cron, shardingTotalCount, shardingItemParameters, jobParameter, failover,
+                    misfire, description, jobProperties, scheduleType, delay, period, times);
         }
     }
 }

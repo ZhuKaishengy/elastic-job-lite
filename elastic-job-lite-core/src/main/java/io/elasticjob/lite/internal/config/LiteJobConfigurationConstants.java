@@ -21,6 +21,7 @@ package io.elasticjob.lite.internal.config;
  * Lite配置的常量.
  *
  * @author caohao
+ * @author zhukaishengy
  */
 public final class LiteJobConfigurationConstants {
     
@@ -37,4 +38,8 @@ public final class LiteJobConfigurationConstants {
     public static final String DISABLED = "disabled";
     
     public static final String OVERWRITE = "overwrite";
+
+    public static final String LISTENER_CLASS = "listenerClass";
+    public static final String DISTRIBUTED_LISTENER_CLASS = "distributedListenerClass";
+
 }

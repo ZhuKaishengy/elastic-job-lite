@@ -19,23 +19,20 @@ package io.elasticjob.lite.internal.schedule;
 
 import io.elasticjob.lite.exception.JobSystemException;
 import lombok.RequiredArgsConstructor;
-import org.quartz.CronScheduleBuilder;
-import org.quartz.CronTrigger;
-import org.quartz.JobDetail;
-import org.quartz.Scheduler;
-import org.quartz.SchedulerException;
-import org.quartz.Trigger;
-import org.quartz.TriggerBuilder;
-import org.quartz.TriggerKey;
+import org.joda.time.DateTime;
+import org.quartz.*;
+
+import java.util.Date;
 
 /**
  * 作业调度控制器.
  * 
  * @author zhangliang
+ * @author zhukaishengy
  */
 @RequiredArgsConstructor
 public final class JobScheduleController {
-    
+
     private final Scheduler scheduler;
     
     private final JobDetail jobDetail;
@@ -57,7 +54,24 @@ public final class JobScheduleController {
             throw new JobSystemException(ex);
         }
     }
-    
+
+    /**
+     * 调度作业.
+     * @param delay 多长时间后开始第一次执行任务，单位为秒, 如果小于等于0，则立即启动任务
+     * @param period 重试时间间隔,单位为秒,为0代表不重试
+     * @param times 除第一次执行外的重试次数，如果为0则为无限次重试
+     */
+    public void scheduleJob(final int delay, int period, int times) {
+        try {
+            if (!scheduler.checkExists(jobDetail.getKey())) {
+                scheduler.scheduleJob(jobDetail, createTrigger(delay, period, times));
+            }
+            scheduler.start();
+        } catch (final SchedulerException ex) {
+            throw new JobSystemException(ex);
+        }
+    }
+
     /**
      * 重新调度作业.
      * 
@@ -73,11 +87,33 @@ public final class JobScheduleController {
             throw new JobSystemException(ex);
         }
     }
-    
+
     private CronTrigger createTrigger(final String cron) {
         return TriggerBuilder.newTrigger().withIdentity(triggerIdentity).withSchedule(CronScheduleBuilder.cronSchedule(cron).withMisfireHandlingInstructionDoNothing()).build();
     }
-    
+
+    private Trigger createTrigger(final int delay, int period, int times) {
+
+        TriggerBuilder tb = TriggerBuilder.newTrigger().withIdentity(triggerIdentity);
+        if(delay>0){
+            Date startDate = DateTime.now().plusSeconds(delay).toDate();
+            tb = tb.startAt(startDate);
+        }else{
+            tb = tb.startNow();
+        }
+        if(period > 0){
+            SimpleScheduleBuilder ssb = SimpleScheduleBuilder.simpleSchedule().withIntervalInSeconds(period);
+            if(times > 0){
+                ssb = ssb.withRepeatCount(times);
+            } else {
+                ssb = ssb.repeatForever();
+            }
+            tb = tb.withSchedule(ssb);
+        }
+
+        return tb.build();
+    }
+
     /**
      * 判断作业是否暂停.
      * 

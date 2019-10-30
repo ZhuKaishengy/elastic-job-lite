@@ -29,13 +29,7 @@ import lombok.NoArgsConstructor;
 import java.io.IOException;
 import java.util.Map;
 
-import static io.elasticjob.lite.internal.config.LiteJobConfigurationConstants.DISABLED;
-import static io.elasticjob.lite.internal.config.LiteJobConfigurationConstants.JOB_SHARDING_STRATEGY_CLASS;
-import static io.elasticjob.lite.internal.config.LiteJobConfigurationConstants.MAX_TIME_DIFF_SECONDS;
-import static io.elasticjob.lite.internal.config.LiteJobConfigurationConstants.MONITOR_EXECUTION;
-import static io.elasticjob.lite.internal.config.LiteJobConfigurationConstants.MONITOR_PORT;
-import static io.elasticjob.lite.internal.config.LiteJobConfigurationConstants.OVERWRITE;
-import static io.elasticjob.lite.internal.config.LiteJobConfigurationConstants.RECONCILE_INTERVAL_MINUTES;
+import static io.elasticjob.lite.internal.config.LiteJobConfigurationConstants.*;
 
 /**
  * Lite作业配置的Gson工厂.
@@ -83,6 +77,7 @@ public final class LiteJobConfigurationGsonFactory {
      * Lite作业配置的Json转换适配器.
      *
      * @author zhangliang
+     * @author zhukaishengy
      */
     static final class LiteJobConfigurationGsonTypeAdapter extends AbstractJobConfigurationGsonTypeAdapter<LiteJobConfiguration> {
         
@@ -109,6 +104,12 @@ public final class LiteJobConfigurationGsonFactory {
                     break;
                 case OVERWRITE:
                     customizedValueMap.put(jsonName, in.nextBoolean());
+                    break;
+                case LISTENER_CLASS:
+                    customizedValueMap.put(jsonName, in.nextString());
+                    break;
+                case DISTRIBUTED_LISTENER_CLASS:
+                    customizedValueMap.put(jsonName, in.nextString());
                     break;
                 default:
                     in.skipValue();
@@ -140,6 +141,12 @@ public final class LiteJobConfigurationGsonFactory {
             if (customizedValueMap.containsKey(OVERWRITE)) {
                 builder.overwrite((boolean) customizedValueMap.get(OVERWRITE));
             }
+            if (customizedValueMap.containsKey(LISTENER_CLASS)) {
+                builder.listenerClass((String) customizedValueMap.get(LISTENER_CLASS));
+            }
+            if (customizedValueMap.containsKey(DISTRIBUTED_LISTENER_CLASS)) {
+                builder.distributedListenerClass((String) customizedValueMap.get(DISTRIBUTED_LISTENER_CLASS));
+            }
             return builder.build();
         }
         
@@ -152,6 +159,9 @@ public final class LiteJobConfigurationGsonFactory {
             out.name(RECONCILE_INTERVAL_MINUTES).value(value.getReconcileIntervalMinutes());
             out.name(DISABLED).value(value.isDisabled());
             out.name(OVERWRITE).value(value.isOverwrite());
+
+            out.name(LISTENER_CLASS).value(value.getListenerClass());
+            out.name(DISTRIBUTED_LISTENER_CLASS).value(value.getDistributedListenerClass());
         }
     }
 }

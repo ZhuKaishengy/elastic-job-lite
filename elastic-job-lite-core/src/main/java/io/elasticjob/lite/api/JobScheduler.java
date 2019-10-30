@@ -22,19 +22,16 @@ import io.elasticjob.lite.api.listener.AbstractDistributeOnceElasticJobListener;
 import io.elasticjob.lite.api.listener.ElasticJobListener;
 import io.elasticjob.lite.api.script.ScriptJob;
 import io.elasticjob.lite.api.strategy.JobInstance;
+import io.elasticjob.lite.config.JobCoreConfiguration;
 import io.elasticjob.lite.config.LiteJobConfiguration;
+import io.elasticjob.lite.config.ScheduleTypeEnum;
 import io.elasticjob.lite.event.JobEventBus;
 import io.elasticjob.lite.event.JobEventConfiguration;
 import io.elasticjob.lite.exception.JobConfigurationException;
 import io.elasticjob.lite.exception.JobSystemException;
 import io.elasticjob.lite.executor.JobFacade;
 import io.elasticjob.lite.internal.guarantee.GuaranteeService;
-import io.elasticjob.lite.internal.schedule.JobRegistry;
-import io.elasticjob.lite.internal.schedule.JobScheduleController;
-import io.elasticjob.lite.internal.schedule.JobShutdownHookPlugin;
-import io.elasticjob.lite.internal.schedule.LiteJob;
-import io.elasticjob.lite.internal.schedule.LiteJobFacade;
-import io.elasticjob.lite.internal.schedule.SchedulerFacade;
+import io.elasticjob.lite.internal.schedule.*;
 import io.elasticjob.lite.reg.base.CoordinatorRegistryCenter;
 import lombok.Getter;
 import org.quartz.JobBuilder;
@@ -52,6 +49,7 @@ import java.util.Properties;
  * 
  * @author zhangliang
  * @author caohao
+ * @author zhukaishengy
  */
 public class JobScheduler {
     
@@ -102,14 +100,22 @@ public class JobScheduler {
      */
     public void init() {
         LiteJobConfiguration liteJobConfigFromRegCenter = schedulerFacade.updateJobConfiguration(liteJobConfig);
-        JobRegistry.getInstance().setCurrentShardingTotalCount(liteJobConfigFromRegCenter.getJobName(), liteJobConfigFromRegCenter.getTypeConfig().getCoreConfig().getShardingTotalCount());
+        JobCoreConfiguration coreConfig = liteJobConfigFromRegCenter.getTypeConfig().getCoreConfig();
+        JobRegistry.getInstance().setCurrentShardingTotalCount(liteJobConfigFromRegCenter.getJobName(), coreConfig.getShardingTotalCount());
         JobScheduleController jobScheduleController = new JobScheduleController(
                 createScheduler(), createJobDetail(liteJobConfigFromRegCenter.getTypeConfig().getJobClass()), liteJobConfigFromRegCenter.getJobName());
         JobRegistry.getInstance().registerJob(liteJobConfigFromRegCenter.getJobName(), jobScheduleController, regCenter);
         schedulerFacade.registerStartUpInfo(!liteJobConfigFromRegCenter.isDisabled());
-        jobScheduleController.scheduleJob(liteJobConfigFromRegCenter.getTypeConfig().getCoreConfig().getCron());
+        // 根据作业调度类型启动初始化触发器，调度作业
+        if (coreConfig.getScheduleType().equals(ScheduleTypeEnum.CRON.getValue())) {
+            jobScheduleController.scheduleJob(coreConfig.getCron());
+        }
+        if (coreConfig.getScheduleType().equals(ScheduleTypeEnum.SIMPLE.getValue())) {
+            jobScheduleController.scheduleJob(coreConfig.getDelay(), coreConfig.getPeriod(), coreConfig.getTimes());
+        }
     }
-    
+
+
     private JobDetail createJobDetail(final String jobClass) {
         JobDetail result = JobBuilder.newJob(LiteJob.class).withIdentity(liteJobConfig.getJobName()).build();
         result.getJobDataMap().put(JOB_FACADE_DATA_MAP_KEY, jobFacade);
