@@ -8,6 +8,7 @@ import io.elasticjob.elasticjobspringbootexample.util.JsonUtils;
 import io.elasticjob.elasticjobspringbootexample.util.ReflectionUtils;
 import io.elasticjob.lite.api.JobScheduler;
 import io.elasticjob.lite.api.JobType;
+import io.elasticjob.lite.api.listener.AbstractDistributeOnceElasticJobListener;
 import io.elasticjob.lite.api.listener.ElasticJobListener;
 import io.elasticjob.lite.config.JobCoreConfiguration;
 import io.elasticjob.lite.config.JobTypeConfiguration;
@@ -87,21 +88,38 @@ public class CustomJobServiceImpl implements CustomJobService, ApplicationContex
         log.info("[ 创建任务 ]:{} 成功！", jobConf.getJobName());
     }
 
+    private static final String LISTENER_CLASS_SEPARATOR = ",";
+
     private List<ElasticJobListener> getTargetElasticJobListeners(JobConf job) {
-        // TODO DistributedJobListener 的处理
-        String listeners = job.getListener();
-        List<ElasticJobListener> result = new ArrayList<>(listeners.length());
-        if (StringUtils.isEmpty(listeners)) {
-            return result;
+
+        String listenersString = job.getListenerClasses();
+        String distributedListenersString = job.getDistributedListenerClasses();
+        int cap = 0;
+        String[] listeners = new String[]{};
+        String[] distributedListeners = new String[]{};
+        if (!StringUtils.isEmpty(listenersString)) {
+            listeners = listenersString.split(LISTENER_CLASS_SEPARATOR);
+            cap += listeners.length;
         }
-        String[] splits = listeners.split(",");
-        for (String listener : splits) {
+        if (!StringUtils.isEmpty(distributedListenersString)) {
+            distributedListeners = distributedListenersString.split(LISTENER_CLASS_SEPARATOR);
+            cap += distributedListeners.length;
+        }
+        List<ElasticJobListener> resultList = new ArrayList<>(cap);
+
+        for (String listener : listeners) {
             Object instance = ReflectionUtils.getInstance(listener);
             if (instance instanceof ElasticJobListener) {
-                result.add((ElasticJobListener)instance);
+                resultList.add((ElasticJobListener)instance);
             }
         }
-        return result;
+        for (String listener : distributedListeners) {
+            Object instance = ReflectionUtils.getInstance(listener);
+            if (instance instanceof AbstractDistributeOnceElasticJobListener) {
+                resultList.add((AbstractDistributeOnceElasticJobListener)instance);
+            }
+        }
+        return resultList;
     }
 
     /**
@@ -110,6 +128,7 @@ public class CustomJobServiceImpl implements CustomJobService, ApplicationContex
      */
     @Override
     public void removeJob(String jobName) {
+
         try {
             regCenter.remove("/" + jobName);
         } catch (Exception e) {
@@ -120,6 +139,7 @@ public class CustomJobServiceImpl implements CustomJobService, ApplicationContex
 
 
     private JobCoreConfiguration buildJobCoreConfiguration(JobConf job) {
+
         // 核心配置
         String scheduleType = job.getScheduleType();
         JobCoreConfiguration.Builder builder = null ;
@@ -170,8 +190,8 @@ public class CustomJobServiceImpl implements CustomJobService, ApplicationContex
                 .jobShardingStrategyClass(jobConf.getJobShardingStrategyClass())
                 .reconcileIntervalMinutes(jobConf.getReconcileIntervalMinutes())
                 // 将监听保存在 ElasticJob对象中
-                .listenerClass(jobConf.getListener())
-                .distributedListenerClass(jobConf.getDistributedListener())
+                .listenerClass(jobConf.getListenerClasses())
+                .distributedListenerClass(jobConf.getDistributedListenerClasses())
                 .build();
         return liteJobConfiguration;
     }
@@ -202,8 +222,14 @@ public class CustomJobServiceImpl implements CustomJobService, ApplicationContex
             ChildData data = event.getData();
             switch (event.getType()) {
                 case CHILD_ADDED:
-                    String config = new String(client1.getData().forPath(data.getPath() + "/config"));
-                    JobConf job = JsonUtils.toBean(JobConf.class, config);
+                    String config;
+                    JobConf job;
+                    try {
+                        config = new String(client1.getData().forPath(data.getPath() + "/config"));
+                        job = JsonUtils.toBean(JobConf.class, config);
+                    } catch (Exception e) {
+                        break;
+                    }
                     Object bean = null;
                     // 获取bean失败则添加任务
                     try {
@@ -217,12 +243,14 @@ public class CustomJobServiceImpl implements CustomJobService, ApplicationContex
                     break;
                 case CHILD_REMOVED:
                     String jobName = data.getPath().substring(1);
-                    Object jobBean = ctx.getBean("JobScheduler" + jobName);
-                    if (Objects.nonNull(jobBean)) {
-                        log.info("监听到任务【 {} 】移除！", jobName);
-                        DefaultListableBeanFactory defaultListableBeanFactory = (DefaultListableBeanFactory) ctx.getAutowireCapableBeanFactory();
-                        defaultListableBeanFactory.removeBeanDefinition("JobScheduler" + jobName);
+                    try {
+                        ctx.getBean("JobScheduler" + jobName);
+                    } catch (Exception e) {
+                        break;
                     }
+                    log.info("监听到任务【 {} 】移除！", jobName);
+                    DefaultListableBeanFactory defaultListableBeanFactory = (DefaultListableBeanFactory) ctx.getAutowireCapableBeanFactory();
+                    defaultListableBeanFactory.removeBeanDefinition("JobScheduler" + jobName);
                     break;
                 default:
                     break;

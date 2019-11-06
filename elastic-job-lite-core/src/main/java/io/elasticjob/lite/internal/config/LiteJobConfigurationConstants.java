@@ -39,7 +39,7 @@ public final class LiteJobConfigurationConstants {
     
     public static final String OVERWRITE = "overwrite";
 
-    public static final String LISTENER_CLASS = "listenerClass";
-    public static final String DISTRIBUTED_LISTENER_CLASS = "distributedListenerClass";
+    public static final String LISTENER_CLASS = "listenerClasses";
+    public static final String DISTRIBUTED_LISTENER_CLASS = "distributedListenerClasses";
 
 }

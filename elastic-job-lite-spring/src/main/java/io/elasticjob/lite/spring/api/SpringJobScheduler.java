@@ -17,7 +17,6 @@
 
 package io.elasticjob.lite.spring.api;
 
-import com.google.common.base.Optional;
 import io.elasticjob.lite.api.ElasticJob;
 import io.elasticjob.lite.api.JobScheduler;
 import io.elasticjob.lite.api.listener.ElasticJobListener;
@@ -25,6 +24,8 @@ import io.elasticjob.lite.config.LiteJobConfiguration;
 import io.elasticjob.lite.event.JobEventConfiguration;
 import io.elasticjob.lite.reg.base.CoordinatorRegistryCenter;
 import io.elasticjob.lite.spring.job.util.AopTargetUtils;
+
+import java.util.Optional;
 
 /**
  * 基于Spring的作业启动器.
@@ -57,6 +58,6 @@ public final class SpringJobScheduler extends JobScheduler {
     
     @Override
     protected Optional<ElasticJob> createElasticJobInstance() {
-        return Optional.fromNullable(elasticJob);
+        return Optional.ofNullable(elasticJob);
     }
 }

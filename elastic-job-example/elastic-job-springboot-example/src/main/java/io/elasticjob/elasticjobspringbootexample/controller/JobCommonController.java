@@ -1,6 +1,6 @@
 package io.elasticjob.elasticjobspringbootexample.controller;
 
-import io.elasticjob.elasticjobspringbootexample.api.JobApi;
+import io.elasticjob.elasticjobspringbootexample.api.JobCommonApi;
 import io.elasticjob.elasticjobspringbootexample.req.JobConf;
 import io.elasticjob.elasticjobspringbootexample.resp.ServiceResult;
 import io.elasticjob.elasticjobspringbootexample.service.impl.CustomJobServiceImpl;
@@ -14,10 +14,10 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @Author: zhukaishengy
  * @Date: 2019/10/17 17:28
- * @Description: job api 实现
+ * @Description: job common api 实现
  */
 @RestController
-public class JobController implements JobApi {
+public class JobCommonController implements JobCommonApi {
 
     @Autowired
     private CustomJobServiceImpl jobService;
@@ -74,6 +74,7 @@ public class JobController implements JobApi {
      */
     @Override
     public ServiceResult removeJob(@PathVariable String jobName) {
+
         jobService.removeJob(jobName);
         return ServiceResult.successWithDefaultMsg();
     }

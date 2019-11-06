@@ -3,13 +3,14 @@ package io.elasticjob.elasticjobspringbootexample.config;
 import io.elasticjob.elasticjobspringbootexample.service.CustomJobService;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @Author: zhukaishengy
  * @Date: 2019/10/22 11:38
  * @Description: spring启动初始化监听器
  */
-//@Component
+@Component
 public class JobContext implements InitializingBean {
 
     @Autowired

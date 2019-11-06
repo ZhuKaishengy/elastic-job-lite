@@ -8,11 +8,14 @@ import org.springframework.web.bind.annotation.*;
  * @Author: zhukaishengy
  * @Date: 2019/10/17 17:29
  * @Description: 分布式任务调度对外暴露的api
+ * <p>
+ *     通用api
+ * </p>
  */
-@RequestMapping(JobApi.JOB_PREFIX)
-public interface JobApi {
+@RequestMapping(JobCommonApi.JOB_PREFIX)
+public interface JobCommonApi {
 
-    String JOB_PREFIX = "/job";
+    String JOB_PREFIX = "/common/job";
 
     /**
      * 添加一个作业
@@ -45,5 +48,4 @@ public interface JobApi {
      */
     @GetMapping("/remove/{jobName}")
     ServiceResult removeJob(@PathVariable String jobName);
-
 }

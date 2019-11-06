@@ -28,6 +28,7 @@ import io.elasticjob.lite.executor.handler.ExecutorServiceHandler;
 import io.elasticjob.lite.executor.handler.ExecutorServiceHandlerRegistry;
 import io.elasticjob.lite.executor.handler.JobExceptionHandler;
 import io.elasticjob.lite.executor.handler.JobProperties;
+import io.elasticjob.lite.reg.base.CoordinatorRegistryCenter;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +43,7 @@ import java.util.concurrent.ExecutorService;
  * 弹性化分布式作业执行器.
  *
  * @author zhangliang
+ * @author zhukaishengy
  */
 @Slf4j
 public abstract class AbstractElasticJobExecutor {
@@ -90,7 +92,11 @@ public abstract class AbstractElasticJobExecutor {
             throw new JobSystemException(e);
         }
     }
-    
+
+    public final void removeInstance(CoordinatorRegistryCenter regCenter) {
+        regCenter.remove("/" + jobName + "/instances");
+    }
+
     /**
      * 执行作业.
      */

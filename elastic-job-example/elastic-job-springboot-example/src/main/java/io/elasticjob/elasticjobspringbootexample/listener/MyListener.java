@@ -21,7 +21,7 @@ public class MyListener implements ElasticJobListener {
     @Override
     public void beforeJobExecuted(ShardingContexts shardingContexts) {
         Map<Integer, String> shardingItemParameters = shardingContexts.getShardingItemParameters();
-        System.out.println("before ..." + shardingItemParameters);
+        System.out.println("listener before ..." + shardingItemParameters);
     }
 
     /**
@@ -32,6 +32,6 @@ public class MyListener implements ElasticJobListener {
     @Override
     public void afterJobExecuted(ShardingContexts shardingContexts) {
         Map<Integer, String> shardingItemParameters = shardingContexts.getShardingItemParameters();
-        System.out.println("after ..." + shardingItemParameters);
+        System.out.println("listener after ..." + shardingItemParameters);
     }
 }

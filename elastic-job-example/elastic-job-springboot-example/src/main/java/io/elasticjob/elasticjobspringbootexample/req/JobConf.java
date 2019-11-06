@@ -150,9 +150,10 @@ public class JobConf {
      * 前置后置任务监听实现类
      * <p>
      *     需实现ElasticJobListener接口，每个任务分片前后都会执行
+     *     多个全类名以逗号分割
      * </p>
      */
-    private String listener = "";
+    private String listenerClasses = "";
 
     /**
      * 作业是否禁止启动，可用于部署作业时，先禁止启动，部署结束后统一启动
@@ -163,9 +164,10 @@ public class JobConf {
      * 前置后置任务分布式监听实现类
      * <p>
      *     需继承AbstractDistributeOnceElasticJobListener类，一个任务只会执行一次，在分片开始前和结束后
+     *     多个全类名以逗号分割
      * </p>
      */
-    private String distributedListener = "";
+    private String distributedListenerClasses = "";
 
     /**
      * 最后一个作业执行前的执行方法的超时时间,单位：毫秒

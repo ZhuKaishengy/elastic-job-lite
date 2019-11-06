@@ -7,7 +7,7 @@
     <packaging>pom</packaging>
     <name>${project.artifactId}</name>
     <description>Elastic-Job - distributed scheduled job solution</description>
-    
+
     <modules>
         <module>elastic-job-lite-core</module>
         <module>elastic-job-lite-spring</module>

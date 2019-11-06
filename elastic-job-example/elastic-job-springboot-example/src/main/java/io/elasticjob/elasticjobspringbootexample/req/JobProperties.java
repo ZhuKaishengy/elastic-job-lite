@@ -6,7 +6,7 @@ import lombok.Data;
 /**
  * @Author: zhukaishengy
  * @Date: 2019/10/18 12:47
- * @Description:
+ * @Description: 可扩展属性
  */
 @Data
 public class JobProperties {

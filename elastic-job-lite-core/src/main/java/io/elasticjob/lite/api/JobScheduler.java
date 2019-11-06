@@ -17,7 +17,6 @@
 
 package io.elasticjob.lite.api;
 
-import com.google.common.base.Optional;
 import io.elasticjob.lite.api.listener.AbstractDistributeOnceElasticJobListener;
 import io.elasticjob.lite.api.listener.ElasticJobListener;
 import io.elasticjob.lite.api.script.ScriptJob;
@@ -39,9 +38,11 @@ import org.quartz.JobDetail;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.impl.StdSchedulerFactory;
+import org.quartz.simpl.SimpleThreadPool;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.Properties;
 
 /**
@@ -56,7 +57,9 @@ public class JobScheduler {
     public static final String ELASTIC_JOB_DATA_MAP_KEY = "elasticJob";
     
     private static final String JOB_FACADE_DATA_MAP_KEY = "jobFacade";
-    
+
+    private static final String REG_CENTER_DATA_MAP_KEY = "regCenter";
+
     private final LiteJobConfiguration liteJobConfig;
     
     private final CoordinatorRegistryCenter regCenter;
@@ -115,10 +118,10 @@ public class JobScheduler {
         }
     }
 
-
     private JobDetail createJobDetail(final String jobClass) {
         JobDetail result = JobBuilder.newJob(LiteJob.class).withIdentity(liteJobConfig.getJobName()).build();
         result.getJobDataMap().put(JOB_FACADE_DATA_MAP_KEY, jobFacade);
+        result.getJobDataMap().put(REG_CENTER_DATA_MAP_KEY, regCenter);
         Optional<ElasticJob> elasticJobInstance = createElasticJobInstance();
         if (elasticJobInstance.isPresent()) {
             result.getJobDataMap().put(ELASTIC_JOB_DATA_MAP_KEY, elasticJobInstance.get());
@@ -133,7 +136,7 @@ public class JobScheduler {
     }
     
     protected Optional<ElasticJob> createElasticJobInstance() {
-        return Optional.absent();
+        return Optional.empty();
     }
     
     private Scheduler createScheduler() {
@@ -151,7 +154,7 @@ public class JobScheduler {
     
     private Properties getBaseQuartzProperties() {
         Properties result = new Properties();
-        result.put("org.quartz.threadPool.class", org.quartz.simpl.SimpleThreadPool.class.getName());
+        result.put("org.quartz.threadPool.class", SimpleThreadPool.class.getName());
         result.put("org.quartz.threadPool.threadCount", "1");
         result.put("org.quartz.scheduler.instanceName", liteJobConfig.getJobName());
         result.put("org.quartz.jobStore.misfireThreshold", "1");

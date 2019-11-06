@@ -2,7 +2,6 @@ package io.elasticjob.lite.config;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 
 /**
  * 任务调度类型
@@ -23,7 +22,6 @@ public enum ScheduleTypeEnum {
      */
     CRON("CRON");
 
-    @Setter
     @Getter
     private final String value;
 }

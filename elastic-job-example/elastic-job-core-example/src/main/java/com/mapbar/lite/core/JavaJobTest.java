@@ -70,9 +70,9 @@ public class JavaJobTest {
         EmbedZookeeperServer.start(EMBED_ZOOKEEPER_PORT);
         CoordinatorRegistryCenter regCenter = setUpRegistryCenter();
         JobEventConfiguration jobEventConfig = new JobEventRdbConfiguration(setUpEventTraceDataSource());
-//        createSimpleJob(regCenter, jobEventConfig);
+        createSimpleJob(regCenter, jobEventConfig);
 //        createDataFlowJob(regCenter, jobEventConfig);
-        createScriptJob(regCenter, jobEventConfig);
+//        createScriptJob(regCenter, jobEventConfig);
     }
 
     /**
