@@ -1,7 +1,7 @@
 package io.elasticjob.elasticjobspringbootexample;
 
 import io.elasticjob.elasticjobspringbootexample.util.IdWorker;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 /**
  * @Author: zhukaishengy

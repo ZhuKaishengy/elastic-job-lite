@@ -14,8 +14,8 @@ import org.springframework.web.client.RestTemplate;
 @ConditionalOnMissingBean(RestTemplate.class)
 public class RestTemplateConfig {
 
-    // TODO 在springcloud里用ribbon实现负载均衡
     @Bean
+//    @LoadBalanced
     public RestTemplate restTemplate() {
         return new RestTemplate();
     }

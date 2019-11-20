@@ -3,7 +3,7 @@ package io.elasticjob.elasticjobspringbootexample;
 import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.Accessors;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 /**
  * @Author: zhukaishengy

@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.2.0.RELEASE</version>
+        <version>2.1.1.RELEASE</version>
     </parent>
     <groupId>io.elasticjob</groupId>
     <artifactId>elastic-job-springboot-example</artifactId>
@@ -15,14 +15,36 @@
 
     <properties>
         <java.version>1.8</java.version>
-        <elastic-version>2.1.5</elastic-version>
+        <elastic-version>3.0.0.M1-SNAPSHOT</elastic-version>
+        <spring-boot.version>2.1.1.RELEASE</spring-boot.version>
+        <spring-cloud.version>Greenwich.RC2</spring-cloud.version>
     </properties>
 
+    <!--<dependencyManagement>-->
+        <!--<dependencies>-->
+            <!--<dependency>-->
+                <!--<groupId>org.springframework.cloud</groupId>-->
+                <!--<artifactId>spring-cloud-dependencies</artifactId>-->
+                <!--<version>${spring-cloud.version}</version>-->
+                <!--<type>pom</type>-->
+                <!--<scope>import</scope>-->
+            <!--</dependency>-->
+        <!--</dependencies>-->
+    <!--</dependencyManagement>-->
+
     <dependencies>
+        <!--<dependency>-->
+            <!--<groupId>org.springframework.cloud</groupId>-->
+            <!--<artifactId>spring-cloud-starter-consul-discovery</artifactId>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>org.springframework.cloud</groupId>-->
+            <!--<artifactId>spring-cloud-starter-openfeign</artifactId>-->
+        <!--</dependency>-->
         <dependency>
             <groupId>io.elasticjob</groupId>
             <artifactId>elastic-job-lite-core</artifactId>
-            <version>3.0.0.M1-SNAPSHOT</version>
+            <version>${elastic-version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -31,6 +53,7 @@
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
+            <version>5.1.6</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -64,6 +87,14 @@
             <artifactId>junit</artifactId>
         </dependency>
     </dependencies>
+
+    <repositories>
+        <repository>
+            <id>spring-milestones</id>
+            <name>Spring Milestones</name>
+            <url>https://repo.spring.io/milestone</url>
+        </repository>
+    </repositories>
 
     <build>
         <plugins>

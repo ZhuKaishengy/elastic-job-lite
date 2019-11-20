@@ -4,6 +4,8 @@ import io.elasticjob.elasticjobspringbootexample.exception.BizException;
 import io.elasticjob.elasticjobspringbootexample.exception.BizExceptionEnum;
 import io.elasticjob.elasticjobspringbootexample.job.BaseSimpleJob;
 import io.elasticjob.lite.api.ShardingContext;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.client.RestTemplate;
 
@@ -23,7 +25,8 @@ public class UrlSimpleJob extends BaseSimpleJob {
      */
     @Override
     public void execute(ShardingContext shardingContext) {
-        RestTemplate restTemplate = new RestTemplate();
+        ApplicationContext applicationContext = new AnnotationConfigApplicationContext();
+        RestTemplate restTemplate = applicationContext.getBean(RestTemplate.class);
         String jobParameter = shardingContext.getJobParameter();
         String[] split = jobParameter.split(PARAM_SEPARATOR);
         if (split.length != 2) {
